@@ -7,7 +7,7 @@ https://www.amazon.com
 
 Scenario Description:
 Go to https://www.amazon.com → Locate the “Account & Lists”
-hover dropdown → Find the nested “Your Orders” link.
+hover dropdown → Find the nested “Create a List” link.
 
 Acceptance Criteria:
 The code should be clean, well-structured, and preferably use TypeScript or JavaScript.
