@@ -1,0 +1,32 @@
+Playwright Testing Task – Dropdown Interaction
+Objective:
+Create an automated test using Playwright to validate the selection of an option from a dropdown menu on a public demo website.
+
+URL Under Test:
+https://the-internet.herokuapp.com/dropdown
+
+Scenario Description:
+You are required to automate the following test scenario:
+
+Navigate to the dropdown page.
+
+Locate and interact with the dropdown element.
+
+Select the option labeled "Option 2".
+
+Assert that "Option 2" is the currently selected value.
+
+
+Acceptance Criteria:
+The test must successfully select “Option 2”.
+
+The final assertion should confirm that “Option 2” is selected.
+
+The code should be clean, well-structured, and preferably use TypeScript or JavaScript.
+
+Bonus Points (Optional):
+Implement the test using a BasePage class.
+
+Add meaningful logging or comments.
+
+Ensure the test is reusable and readable.
