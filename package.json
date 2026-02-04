@@ -10,7 +10,7 @@
     "test": "npx playwright test example.spec.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.54.2",
+    "@playwright/test": "^1.56.1",
     "@types/node": "^24.2.0"
   }
 }
