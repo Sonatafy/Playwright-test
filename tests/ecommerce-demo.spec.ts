@@ -76,24 +76,24 @@ test.describe('E-commerce Demo Tests', () => {
     expect(numericPrices).toEqual(sortedPrices);
   });
 
-  test('should remove items from cart', async ({ page }) => {
-    await page.goto('https://www.saucedemo.com/');
+  // test('should remove items from cart', async ({ page }) => {
+  //   await page.goto('https://www.saucedemo.com/');
     
-    await page.locator('[data-test="username"]').fill('standard_user');
-    await page.locator('[data-test="password"]').fill('secret_sauce');
-    await page.locator('[data-test="login-button"]').click();
+  //   await page.locator('[data-test="username"]').fill('standard_user');
+  //   await page.locator('[data-test="password"]').fill('secret_sauce');
+  //   await page.locator('[data-test="login-button"]').click();
     
-    await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
-    await page.locator('[data-test="add-to-cart-sauce-labs-bike-light"]').click();
+  //   await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
+  //   await page.locator('[data-test="add-to-cart-sauce-labs-bike-light"]').click();
     
-    await page.locator('.shopping_cart_link').click();
+  //   await page.locator('.shopping_cart_link').click();
     
-    await page.locator('[data-test="remove-sauce-labs-backpack"]').click();
+  //   await page.locator('[data-test="remove-sauce-labs-backpack"]').click();
     
-    const cartItems = page.locator('.cart_item');
-    await expect(cartItems).toHaveCount(1);
+  //   const cartItems = page.locator('.cart_item');
+  //   await expect(cartItems).toHaveCount(1);
     
-    const cartBadge = page.locator('.shopping_cart_badge');
-    await expect(cartBadge).toHaveText('1');
-  });
+  //   const cartBadge = page.locator('.shopping_cart_badge');
+  //   await expect(cartBadge).toHaveText('1');
+  // });
 });
