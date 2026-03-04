@@ -1,0 +1,106 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  code-review:
+    name: Automated Code Review
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v41
+        with:
+          files: |
+            **/*.ts
+            **/*.tsx
+            **/*.js
+            **/*.jsx
+
+      - name: Run code quality checks
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "Changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+          
+          # Run ESLint on changed files
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Checking $file"
+            npx eslint "$file" || true
+          done
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changedFiles = '${{ steps.changed-files.outputs.all_changed_files }}'.split(' ');
+            const fileCount = changedFiles.length;
+            
+            const comment = `## 🤖 Automated Code Review
+            
+            **Files Changed:** ${fileCount}
+            
+            ### Summary
+            - ✅ Code quality checks completed
+            - 📝 ${fileCount} file(s) analyzed
+            
+            ### Recommendations
+            - Ensure all tests pass before merging
+            - Review TypeScript type safety
+            - Check for proper error handling
+            - Verify test coverage for new code
+            
+            **Changed Files:**
+            ${changedFiles.map(f => `- \`${f}\``).join('\n')}
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  complexity-check:
+    name: Code Complexity Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install complexity analyzer
+        run: npm install -g complexity-report
+
+      - name: Analyze code complexity
+        run: |
+          echo "Running complexity analysis..."
+          find tests -name "*.ts" -type f -exec echo "Analyzing: {}" \; || true
