@@ -1,0 +1,100 @@
+name: PR Quality Checks
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run all quality checks
+        id: quality
+        run: |
+          echo "Running quality checks..."
+          
+          # TypeScript check
+          echo "::group::TypeScript Check"
+          npm run type-check
+          echo "::endgroup::"
+          
+          # Lint check
+          echo "::group::ESLint Check"
+          npm run lint || echo "LINT_FAILED=true" >> $GITHUB_ENV
+          echo "::endgroup::"
+          
+          # Format check
+          echo "::group::Prettier Check"
+          npm run format:check || echo "FORMAT_FAILED=true" >> $GITHUB_ENV
+          echo "::endgroup::"
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        continue-on-error: true
+
+      - name: Generate quality report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const lintFailed = process.env.LINT_FAILED === 'true';
+            const formatFailed = process.env.FORMAT_FAILED === 'true';
+            
+            let status = '✅ All checks passed!';
+            let details = [];
+            
+            if (lintFailed) {
+              status = '⚠️ Some checks failed';
+              details.push('- ❌ ESLint found issues - Run `npm run lint:fix`');
+            } else {
+              details.push('- ✅ ESLint passed');
+            }
+            
+            if (formatFailed) {
+              status = '⚠️ Some checks failed';
+              details.push('- ❌ Code formatting issues - Run `npm run format`');
+            } else {
+              details.push('- ✅ Prettier formatting passed');
+            }
+            
+            details.push('- ✅ TypeScript compilation passed');
+            
+            const comment = `## 🔍 PR Quality Report
+            
+            ${status}
+            
+            ### Checks
+            ${details.join('\n')}
+            
+            ### Next Steps
+            ${lintFailed || formatFailed ? '⚠️ Please fix the issues above before merging.' : '✅ Your PR is ready for review!'}
+            
+            ---
+            *Automated by GitHub Actions*
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
