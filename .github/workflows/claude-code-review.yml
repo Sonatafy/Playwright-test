@@ -46,58 +46,46 @@ jobs:
           const fs = require('fs');
 
           const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-          const PR_DIFF = fs.readFileSync('pr_diff.txt', 'utf8');
-          const PR_TITLE = process.env.PR_TITLE;
-          const PR_BODY = process.env.PR_BODY || 'No description provided';
+          let prDiff = fs.readFileSync('pr_diff.txt', 'utf8');
+          const prTitle = process.env.PR_TITLE || 'No title';
+          const prBody = process.env.PR_BODY || 'No description provided';
 
-          const prompt = `You are an expert code reviewer specializing in Playwright test automation and TypeScript.
+          // Limit diff size to prevent oversized requests
+          if (prDiff.length > 8000) {
+            prDiff = prDiff.substring(0, 8000) + '\n\n... (diff truncated for review)';
+          }
 
-          Review this Pull Request:
-          
-          Title: ${PR_TITLE}
-          Description: ${PR_BODY}
-          
-          Code Changes:
-          \`\`\`diff
-          ${PR_DIFF.substring(0, 15000)}
-          \`\`\`
-          
-          Provide a thorough code review focusing on:
-          1. Test quality and coverage
-          2. Playwright best practices
-          3. Code maintainability and readability
-          4. Potential bugs or issues
-          5. Performance considerations
-          6. TypeScript type safety
-          
-          Format your response as:
-          ## 🤖 Claude AI Code Review
-          
-          ### Summary
-          [Brief overview]
-          
-          ### Strengths
-          - [What's good]
-          
-          ### Issues Found
-          - [Critical/Important issues]
-          
-          ### Suggestions
-          - [Improvements]
-          
-          ### Security & Best Practices
-          - [Any concerns]
-          
-          Keep it concise but thorough.`;
+          const prompt = "You are an expert code reviewer specializing in Playwright test automation and TypeScript.\n\n" +
+            "Review this Pull Request:\n\n" +
+            "Title: " + prTitle + "\n" +
+            "Description: " + prBody + "\n\n" +
+            "Code Changes:\n```diff\n" + prDiff + "\n```\n\n" +
+            "Provide a thorough code review focusing on:\n" +
+            "1. Test quality and coverage\n" +
+            "2. Playwright best practices\n" +
+            "3. Code maintainability and readability\n" +
+            "4. Potential bugs or issues\n" +
+            "5. Performance considerations\n" +
+            "6. TypeScript type safety\n\n" +
+            "Format your response as:\n" +
+            "## 🤖 Claude AI Code Review\n\n" +
+            "### Summary\n[Brief overview]\n\n" +
+            "### Strengths\n- [What's good]\n\n" +
+            "### Issues Found\n- [Critical/Important issues]\n\n" +
+            "### Suggestions\n- [Improvements]\n\n" +
+            "### Security & Best Practices\n- [Any concerns]\n\n" +
+            "Keep it concise but thorough.";
 
-          const data = JSON.stringify({
+          const requestBody = {
             model: 'claude-3-5-sonnet-20241022',
             max_tokens: 4096,
             messages: [{
               role: 'user',
               content: prompt
             }]
-          });
+          };
+
+          const data = JSON.stringify(requestBody);
 
           const options = {
             hostname: 'api.anthropic.com',
